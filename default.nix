@@ -7,19 +7,26 @@
 # commands such as:
 #     nix-build -A mypackage
 
-{ pkgs ? import <nixpkgs> { } }:
-
 {
-  # The `lib`, `overlays`, `nixosModules`, `homeModules`,
-  # `darwinModules` and `flakeModules` names are special
-  lib = import ./lib { inherit pkgs; }; # functions
-  nixosModules = import ./nixos-modules; # NixOS modules
-  # homeModules = { }; # Home Manager modules
-  # darwinModules = { }; # nix-darwin modules
-  # flakeModules = { }; # flake-parts modules
-  overlays = import ./overlays; # nixpkgs overlays
+  pkgs ? import <nixpkgs> { },
+}:
 
-  example-package = pkgs.callPackage ./pkgs/example-package { };
-  # some-qt5-package = pkgs.libsForQt5.callPackage ./pkgs/some-qt5-package { };
-  # ...
+let
+  repository = {
+    # The `lib`, `overlays`, `nixosModules`, `homeModules`,
+    # `darwinModules` and `flakeModules` names are special
+    lib = import ./lib { inherit pkgs; }; # functions
+    nixosModules = import ./nixos-modules; # NixOS modules
+    # homeModules = { }; # Home Manager modules
+    # darwinModules = { }; # nix-darwin modules
+    # flakeModules = { }; # flake-parts modules
+    overlays = import ./overlays; # nixpkgs overlays
+
+    # some-qt5-package = pkgs.libsForQt5.callPackage ./pkgs/some-qt5-package { };
+    # ...
+  };
+in
+repository
+// pkgs.lib.optionalAttrs (builtins.pathExists ./pkgs/azctx/default.nix) {
+  azctx = pkgs.callPackage ./pkgs/azctx { };
 }
